@@ -6,8 +6,11 @@
     "forin": false,
     "interface-name": [true, "never-prefix"],
     "no-console": [false],
-    "no-namespace": [true, "allow-declarations"],
+    "no-namespace": [false],
+    "member-ordering": [false],
+    "semicolon": [true, "ignore-bound-class-methods"],
     "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
+    "prefer-const": false,
     "variable-name": [
       true,
       "ban-keywords",

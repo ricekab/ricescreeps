@@ -1,106 +1,73 @@
-import * as _ from "lodash";
-import * as Builder from "./creeps/role.builder";
-import * as Harvester from "./creeps/role.harvester";
-import * as Miner from "./creeps/role.miner";
-import * as Repairer from "./creeps/role.repairer";
-import * as Upgrader from "./creeps/role.upgrader";
-import * as RoomManager from "./room.main";
+import {CLEAN_MEMORY_PERIOD, VERSIONS} from "./constants";
+import {CreepManager} from "./creeps/CreepManager";
+import {Empire} from "./empire/Empire";
+import {FlagManager} from "./flags/FlagManager";
+import {RoomManager} from "./rooms/RoomManager";
 import {ErrorMapper} from "./utils/ErrorMapper";
+import {Logger} from "./utils/Logger";
 
-const getNextOpenSource = (miners: Creep[]): Source  => {
-    const sources = Game.spawns.Spawn1.room.find(FIND_SOURCES);
-    for (const source in sources) {
-        const sourceMiners = _.filter(miners, (miner) => {
-            return (miner.memory.sourceId === sources[source].id);
-        });
-        const nodeCapacity = 3; // TODO: Actual node capacity.
-        if (sourceMiners.length < nodeCapacity) {
-            return sources[source];
+// Initialization IIFE
+(() => {
+    if (!Memory.versions) {
+        Memory.versions = {};
+    }
+    if (Memory.versions.room !== VERSIONS.ROOM_MEM) { // Memory structure updated or doesn't exist.
+        const myRooms = _.filter(Game.rooms, (room) => room.controller ? room.controller.my : false);
+        _.forEach(myRooms, (room) => RoomManager.initState(room));
+    }
+    if (Memory.versions.empire !== VERSIONS.EMPIRE_MEM) { // Memory structure outdated or doesn't exist.
+        Empire.initState();
+    }
+    if (Memory.versions.flag !== VERSIONS.FLAG_MEM) {
+        _.forEach(Game.flags, (flag) => FlagManager.initState(flag));
+    }
+    Memory.versions = {
+        room: VERSIONS.ROOM_MEM,
+        empire: VERSIONS.EMPIRE_MEM,
+        flag: VERSIONS.FLAG_MEM
+    };
+})();
+
+const cleanMemory = () => {
+    if (Game.time % CLEAN_MEMORY_PERIOD === 0) {
+        for (const name in Memory.creeps) {
+            if (!Game.creeps[name]) {
+                Logger.CONSOLE(`Clearing non-existing creep memory: ${name}`);
+                delete Memory.creeps[name];
+            }
+        }
+        for (const name in Memory.flags) {
+            if (!Game.flags[name]) {
+                Logger.CONSOLE(`Clearing non-existing flag memory: ${name}`);
+                delete Memory.flags[name];
+            }
         }
     }
-    console.log("[ERROR] main - getNextOpenSource did not return a source!");
-    return null;
 };
 
 export const loop = ErrorMapper.wrapLoop(() => {
-    // CLEAN MEMORY
-    for (const name in Memory.creeps) {
-        if (!Game.creeps[name]) {
-            // TODO: Adjust memory for rooms, etc if needed.
-            delete Memory.creeps[name];
-            console.log("Clearing non-existing creep memory:", name);
-        }
-    }
+    // Clean various memory segments
+    cleanMemory();
 
-    const energy: number = 0;
+    const myRooms = _.filter(Game.rooms, (room) => room.controller ? room.controller.my : false);
 
-    // STATE REFRESH
-    for (const name in Game.rooms) {
-        RoomManager.manage(Game.rooms[name]);
-        const room = Game.rooms[name];
-    }
+    // ROOM UPDATE
+    _.forEach(myRooms, (room) => RoomManager.updateState(room));
 
-    // SPAWN / RESPAWN CREEPS
-    const maxHarvesters = 6;
-    const harvesters = _.filter(Game.creeps, (creep) => creep.memory.role === "harvester");
-    if (harvesters.length < maxHarvesters) {
-        const newName = "Harvester" + Game.time;
-        const priority = harvesters.length;
-        Harvester.spawnHarvester(Game.spawns.Spawn1, energy, newName, priority);
-    }
+    _.forEach(Game.creeps, (creep) => {
+        CreepManager.update(creep);
+        CreepManager.run(creep);
+    });
 
-    /*
-      TODO: Look at memory for amount of open positions in the room. If it is not set run a calculation and set it in
-      the memory.
-     */
-    const maxMiners = 6;
-    const miners: Creep[] = _.filter(Game.creeps, (creep) => creep.memory.role === "miner");
+    _.forEach(Game.flags, (flag) => {
+        FlagManager.update(flag);
+        FlagManager.run(flag);
+    });
 
-    if (miners.length < maxMiners) {
-        const nextMinerSource: Source = getNextOpenSource(miners);
-        const newName = "Miner" + Game.time;
-        Miner.spawnSmall(Game.spawns.Spawn1, newName, nextMinerSource.id);
-    }
+    Empire.update();
+    Empire.run();
 
-    const maxUpgraders = 6;
-    const upgraders = _.filter(Game.creeps, (creep) => creep.memory.role === "upgrader");
-    if (upgraders.length < maxUpgraders) {
-        const newName = "Upgrader" + Game.time;
-        Upgrader.spawnSmall(Game.spawns.Spawn1, newName);
-    }
+    // ROOM RUN (STRUCTURES)
+    _.forEach(myRooms, (room) => RoomManager.run(room));
 
-    const maxBuilders = 5;
-    const builders = _.filter(Game.creeps, (creep) => creep.memory.role === "builder");
-
-    if (builders.length < maxBuilders) {
-        const newName = "Builder" + Game.time;
-        Builder.spawnSmall(Game.spawns.Spawn1, newName);
-    }
-
-    const maxRepairers = 3;
-    const repairers = _.filter(Game.creeps, (creep) => creep.memory.role === "repairer");
-
-    if (repairers.length < maxRepairers) {
-        const newName = "Repairer" + Game.time;
-        Repairer.spawnRepairer(Game.spawns.Spawn1, energy, newName, repairers.length);
-    }
-    // CREEP AI
-    for (const name in Game.creeps) {
-        const creep = Game.creeps[name];
-        if (creep.memory.role === "harvester") {
-            Harvester.run(creep);
-        }
-        if (creep.memory.role === "upgrader") {
-            Upgrader.run(creep);
-        }
-        if (creep.memory.role === "builder") {
-            Builder.run(creep);
-        }
-        if (creep.memory.role === "miner") {
-            Miner.run(creep);
-        }
-        if (creep.memory.role === "repairer") {
-            Repairer.run(creep);
-        }
-    }
 });

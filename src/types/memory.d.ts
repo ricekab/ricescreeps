@@ -1,17 +1,24 @@
 interface CreepMemory {
-    role: string,
+    type: string;
+    state: any;
+    task?: any;
+    taskStack: any[];
 
-    [name: string]: any
+    [name: string]: any;
 }
 
 interface FlagMemory {
-    [name: string]: any
+    type: string;
+
+    [name: string]: any;
 }
 
 interface SpawnMemory {
-    [name: string]: any
+    [name: string]: any;
 }
 
 interface RoomMemory {
-    [name: string]: any
+    energyHistory: number[];
+
+    [name: string]: any;
 }

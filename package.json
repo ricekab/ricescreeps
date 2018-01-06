@@ -1,8 +1,13 @@
 {
   "name": "Ricescreeps",
-  "version": "0.1.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.2.0",
+  "description": "RiceKab's Screep AI",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RiceKab/ricescreeps.git"
+  },
   "scripts": {
     "lint": "tslint \"src/**/*.ts\"",
     "push-main": "rollup -c --dest main",
@@ -11,7 +16,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch-main": "rollup -cw --dest main",
     "watch-pserver": "rollup -cw --dest pserver",
-    "watch-sim": "rollup -cw --dest sim"
+    "watch-sim": "rollup -cw --dest sim",
+    "build": "rollup -c",
+    "push-local": "npm run build && python deploy.py"
   },
   "author": "",
   "devDependencies": {

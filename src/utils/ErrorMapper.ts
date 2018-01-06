@@ -4,6 +4,8 @@ import {SourceMapConsumer} from "source-map";
 export class ErrorMapper {
     // Cache consumer
     private static _consumer?: SourceMapConsumer;
+    // Cache previously mapped traces to improve performance
+    public static cache: { [key: string]: string } = {};
 
     public static get consumer(): SourceMapConsumer {
         if (this._consumer == null) {
@@ -12,9 +14,6 @@ export class ErrorMapper {
 
         return this._consumer;
     }
-
-    // Cache previously mapped traces to improve performance
-    public static cache: { [key: string]: string } = {};
 
     /**
      * Generates a stack trace using a source map generate original symbol names.

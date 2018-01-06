@@ -10,6 +10,7 @@
 
 # Screeps Config
 screeps.json
+deploy.py
 
 # Numerous always-ignore extensions
 *.diff
