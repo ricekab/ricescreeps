@@ -1,5 +1,5 @@
 {
-  "name": "Ricescreeps",
+  "name": "ricescreeps",
   "version": "0.2.0",
   "description": "RiceKab's Screep AI",
   "license": "MIT",
@@ -22,19 +22,19 @@
   },
   "author": "",
   "devDependencies": {
-    "@types/lodash": "^3.10.1",
-    "@types/screeps": "^2.1.0",
-    "@types/source-map": "^0.5.2",
-    "rollup": "^0.51.8",
-    "rollup-plugin-clean": "^1.0.0",
-    "rollup-plugin-commonjs": "^8.2.6",
-    "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-plugin-screeps": "0.0.1",
-    "rollup-plugin-typescript2": "^0.8.1",
-    "tslint": "^5.8.0",
-    "typescript": "^2.6.1"
+    "@types/lodash": "3.10.*",
+    "@types/node": "8.*",
+    "@types/screeps": "2.*",
+    "@types/source-map": "*",
+    "rollup": "*",
+    "rollup-plugin-clear": "2.*",
+    "rollup-plugin-commonjs": "9.*",
+    "rollup-plugin-node-resolve": "3.*",
+    "rollup-plugin-screeps": "0.1.*",
+    "rollup-plugin-typescript2": "0.16.*",
+    "tslint": "5.*",
+    "typescript": "2.*",
+    "source-map": "0.6.*"
   },
-  "dependencies": {
-    "source-map": "^0.6.1"
-  }
+  "dependencies": {}
 }
